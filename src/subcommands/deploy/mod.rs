@@ -1026,10 +1026,18 @@ fn explain_txs(info: &IntermediumInfo) -> Result<()> {
                 HumanCapacity(output_total)
             ));
         }
+        let tx = packed::Transaction::from(tx.clone());
+        let tx_size = tx.as_bytes().len();
+        let fee_rate = 1000 * (input_total as usize - output_total as usize) / (tx_size + 4);
         println!(
-            "[transaction fee]: {}",
-            HumanCapacity(input_total - output_total)
+            "[transaction fee]: {}, [transaction fee-rate]: {}, [transaction size]: {}",
+            HumanCapacity(input_total - output_total),
+            fee_rate,
+            tx_size
         );
+        if fee_rate < 1000 {
+            return Err(anyhow!("invalid transaction, fee-rate = {}", fee_rate));
+        }
         Ok(())
     }
 
